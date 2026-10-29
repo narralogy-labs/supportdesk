@@ -1,0 +1,36 @@
+# Written by OpenPort: which model each LLM call uses after the port, and what it used before.
+openport: 0.1.0
+gate:
+  evals: evals/openport.evals.yaml
+  min_pass_rate: 0.9
+call_sites:
+- id: pii.extract_pii
+  file: supportdesk/pii.py
+  line: 29
+  status: ported
+  model: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+  was: gpt-5-mini
+- id: policy.review_case
+  file: supportdesk/policy.py
+  line: 36
+  status: ported
+  model: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+  was: claude-opus-5-5
+- id: refunds.handle_refund_request
+  file: supportdesk/refunds.py
+  line: 63
+  status: ported
+  model: nvidia/nemotron-3-super-120b-a12b
+  was: gpt-5
+- id: replies.draft_reply
+  file: supportdesk/replies.py
+  line: 30
+  status: ported
+  model: nvidia/Nemotron-3-Ultra-550b-a55b
+  was: claude-sonnet-5-5
+- id: triage.triage_ticket
+  file: supportdesk/triage.py
+  line: 31
+  status: ported
+  model: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+  was: gpt-5-mini
