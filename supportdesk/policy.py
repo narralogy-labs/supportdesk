@@ -2,11 +2,11 @@
 
 import re
 
-from anthropic import Anthropic
 
 from .store import POLICY
+from .openport_llm import anthropic_client
 
-client = Anthropic()
+client = anthropic_client()
 
 SYSTEM_PROMPT = f"""You prepare decision briefs for Fernhill Supply Co.'s support supervisors. Every case was escalated by an agent: it's over the agent's refund limit, flagged for repeat refunds, or asks for an exception.
 
@@ -24,7 +24,9 @@ Decisions:
 Respond in exactly this format:
 <decision>approve|partial|deny</decision>
 <refund_amount>amount in USD, 0 if denied</refund_amount>
-<brief>Two or three sentences for the supervisor: the decision and the policy sections behind it.</brief>"""
+<brief>Two or three sentences for the supervisor: the decision and the policy sections behind it.</brief>
+
+Repeat refunds (policy 10): escalation requires supervisor review, not automatic denial. Approve if the current request is within policy AND every prior refund in the 90-day window was for defect or shipping damage. Shipping damage (policy 6): the 7-day report window is strict; reports after 7 days fall back to standard returns (policy 1) with no shipping refund. Approval limits (policy 8): amounts over $250 must be escalated to a supervisor, who then approves the full policy-eligible amount (which may exceed $250). Do not cap refunds at $250."""
 
 
 def _tag(text: str, name: str) -> str:
@@ -34,11 +36,12 @@ def _tag(text: str, name: str) -> str:
 
 def review_case(case_file: str, today: str) -> dict:
     message = client.messages.create(
-        model="claude-opus-5-5",
+        model="nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",  # was "claude-opus-5-5"
         max_tokens=16000,
         thinking={"type": "enabled", "budget_tokens": 8000},
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": f"Today is {today}.\n\n<case>\n{case_file}\n</case>"}],
+        extra_body={'chat_template_kwargs': {'enable_thinking': True}},
     )
     text = next(block.text for block in message.content if block.type == "text")
     return {

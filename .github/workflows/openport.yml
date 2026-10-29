@@ -1,0 +1,29 @@
+# Added by OpenPort. On every pull request, re-runs each LLM call's evals on the NVIDIA Nemotron
+# model its code names, and fails if any call drops below the bar in openport.yaml.
+# Needs a NEBIUS_API_KEY repository secret (Settings > Secrets and variables > Actions).
+name: OpenPort quality gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  llm-evals:
+    runs-on: ubuntu-latest
+    # Pull requests from forks can't read repository secrets.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install the app and OpenPort
+        run: |
+          uv venv
+          uv pip install -r pyproject.toml
+          uv pip install "openport @ git+https://github.com/NMooreCo/openport"
+      - name: Run each LLM call's evals on Nemotron
+        env:
+          NEBIUS_API_KEY: ${{ secrets.NEBIUS_API_KEY }}
+        run: .venv/bin/openport check .

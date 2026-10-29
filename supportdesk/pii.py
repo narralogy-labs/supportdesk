@@ -1,9 +1,9 @@
 """PII scrubbing: pull contact details out of a ticket and redact it before it's stored or sent to analytics."""
 
-from openai import OpenAI
 from pydantic import BaseModel
+from .openport_llm import token_factory_client
 
-client = OpenAI()
+client = token_factory_client()
 
 
 class TicketPII(BaseModel):
@@ -27,7 +27,7 @@ Use null for any field the ticket doesn't contain."""
 
 def extract_pii(ticket: str) -> TicketPII:
     completion = client.chat.completions.parse(
-        model="gpt-5-mini",
+        model="nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",  # was "gpt-5-mini"
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": ticket},

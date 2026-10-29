@@ -2,11 +2,11 @@
 
 import json
 
-from openai import OpenAI
 
 from .store import POLICY, RefundSession
+from .openport_llm import token_factory_client
 
-client = OpenAI()
+client = token_factory_client()
 
 
 def _tool(name: str, description: str, properties: dict, required: list[str]) -> dict:
@@ -60,7 +60,7 @@ def handle_refund_request(ticket: str, today: str) -> dict:
         {"role": "user", "content": ticket},
     ]
     for _ in range(6):
-        response = client.chat.completions.create(model="gpt-5", messages=messages, tools=TOOLS)
+        response = client.chat.completions.create(model="nvidia/nemotron-3-super-120b-a12b", messages=messages, tools=TOOLS)  # was "gpt-5"
         message = response.choices[0].message
         messages.append(message)
         if not message.tool_calls:
